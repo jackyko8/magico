@@ -1,6 +1,6 @@
 from .dotted_dict import *
 from abc import ABC
-from typing import Any
+from typing import Any, Union, Callable
 from copy import deepcopy
 import json
 import re
@@ -13,7 +13,7 @@ import functools
 
 
 class MagicO(ABC):
-    def __init__(self, data) -> None:
+    def __init__(self, data: Union[dict, list]) -> None:
         # Use only __dict__ to avoid triggering magic functions
         # self._data = data
         # self._type_method_list = []
@@ -53,7 +53,7 @@ class MagicO(ABC):
             self.__dict__[type_method] = self._type_method(data_type, type_method)
 
 
-    def _type_method(self, type, method_name):
+    def _type_method(self, type: type, method_name: str) -> Callable:
         type_method = getattr(type, method_name)
         # logger.debug(f"_type_method: {type_method}")
         @functools.wraps(type_method)
@@ -62,7 +62,7 @@ class MagicO(ABC):
         return method_wrapper
 
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self._data)
 
 
@@ -130,26 +130,26 @@ class MagicO(ABC):
             return item
 
 
-    def __setitem__(self, path, value) -> Any:
+    def __setitem__(self, path, value) -> None:
         # logger.debug(f"__setitem__: {type(path)} {path} <- {value}")
         dotted_dict(self._data, path_str(path), value=value)
 
 
-    def __delitem__(self, path) -> Any:
+    def __delitem__(self, path) -> None:
         # logger.debug(f"__delitem__: {type(path)} {path}")
         dotted_dict(self._data, path_str(path), delete=True)
 
 
-    def to_data(self):
+    def to_data(self) -> Union[dict, list]:
         # logger.debug(f"to_data: {type(self._data)} {self._data}")
         return self._data
 
 
-    def to_dict(self):
+    def to_dict(self) -> Union[dict, list]:
         # logger.debug(f"to_dict: {type(self._data)} {self._data}")
         return self._data
 
 
-    def to_list(self):
+    def to_list(self) -> Union[dict, list]:
         # logger.debug(f"to_list: {type(self._data)} {self._data}")
         return self._data

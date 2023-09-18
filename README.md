@@ -90,11 +90,11 @@ With the `MagicO` subscript notation, you can create a "deep" attribute simply b
 ```python
 my_magic["$.b.g.h.i"] = 9 # Creating a "deep" attribute b.g.h.i
 print(my_magic) # Attribute "b" is added with "g.h" to get to "i"
-# Output: {'a': 1, 'b': {'c': 3, 'd': 4, 'g': {'h': {'i': 9}}}, 'e': [{'f': 6}, 'xyz']}
+# Output: {"a": 1, "b": {"c": 3, "d": 4, "g": {"h": {"i": 9}}}, "e": [{"f": 6}, "xyz"]}
 
 del my_magic["$.b.g"] # Deleting the parent will delete its tree
 print(my_magic) # Attribute "b.g" is deleted
-# Output: {'a': 1, 'b': {'c': 3, 'd': 4}, 'e': [{'f': 6}, 'xyz']}
+# Output: {"a": 1, "b": {"c": 3, "d": 4}, "e": [{"f": 6}, "xyz"]}
 ```
 
 ## Data types
