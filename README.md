@@ -1,6 +1,6 @@
 # MagicO - enabling attribute notation and JSONPath
 
-`MagicO` (Magical Object 0.1) allows you to access a `dict` or `list` Python object using the attribute notation or a JSONPath.
+`MagicO` (Magic Object 0.1) allows you to access a `dict` or `list` Python object using the attribute notation or a JSONPath.
 
 For example, given the following data object:
 
@@ -19,8 +19,8 @@ my_data = {
 }
 ```
 
-to access attribute "f", you would need to use a series of subscripts, like `my_data["e"][0]["f"])`.
-As a programmer, you probably would find it more natural to use the attribute notation, like `my_data.e[0].f`, or the JSONPath notation, like `my_data["$.e[0].f"]`.
+to access attribute "f", you would need to use a series of subscripts, such as `my_data["e"][0]["f"])`.
+As a programmer, you probably would find it more natural to use the attribute notation, such as `my_data.e[0].f`, or the JSONPath notation, such as `my_data["$.e[0].f"]`.
 This is what `MagicO` enables you to do.
 
 To install `MagicO`:
@@ -43,7 +43,10 @@ To access an attribute using the attribute (dotted) notation:
 
 ```python
 print(my_magic) # Original data
-print(my_magic.e[0].f) # Output 6
+# Output: {"a": 1, "b": {"c": 3, "d": 4}, "e": [{"f": 6}, "xyz"]}
+
+print(my_magic.e[0].f)
+# Output: 6
 ```
 
 You may create new attributes, change them, and delete them using the attribute notation.
@@ -51,12 +54,15 @@ You may create new attributes, change them, and delete them using the attribute 
 ```python
 print(my_magic)
 # Output: {"a": 1, "b": {"c": 3, "d": 4}, "e": [{"f": 6}, "xyz"]}
+
 my_magic.b.g = 7
 print(my_magic) # b.g is created
 # Output: {"a": 1, "b": {"c": 3, "d": 4, "g": 7}, "e": [{"f": 6}, "xyz"]}
+
 my_magic.b.g = 8
 print(my_magic) # b.g is updated
 # Output: {"a": 1, "b": {"c": 3, "d": 4, "g": 8}, "e": [{"f": 6}, "xyz"]}
+
 del my_magic.b.g
 print(my_magic) # b.g is deleted
 # Output: {"a": 1, "b": {"c": 3, "d": 4}, "e": [{"f": 6}, "xyz"]}
@@ -64,14 +70,16 @@ print(my_magic) # b.g is deleted
 
 ## JSONPath notation
 
-There are times when the attribute to access is programmatically formulated as a [JSONPath](https://github.com/json-path/JsonPath), like "$.e[0].f".
+There are times when the attribute to access is programmatically formulated as a [JSONPath](https://github.com/json-path/JsonPath), such as "$.e[0].f".
 In this case, you may use the JSONPath as a subscript to the `MagicO` object, as in the following example:
 
 ```python
 print(my_magic) # Original data
 # Output: {"a": 1, "b": {"c": 3, "d": 4}, "e": [{"f": 6}, "xyz"]}
+
 print(my_magic["$.e[0].f"])
 # Output: 6
+
 # The root element of the JSONPath can be omitted
 print(my_magic["e[0].f"])
 # Output: 6
@@ -81,14 +89,15 @@ With the `MagicO` subscript notation, you can create a "deep" attribute simply b
 
 ```python
 my_magic["$.b.g.h.i"] = 9 # Creating a "deep" attribute b.g.h.i
-print(my_data) # Attribute "b" is added with "g.h" to get to "i"
+print(my_magic) # Attribute "b" is added with "g.h" to get to "i"
 # Output: {'a': 1, 'b': {'c': 3, 'd': 4, 'g': {'h': {'i': 9}}}, 'e': [{'f': 6}, 'xyz']}
+
 del my_magic["$.b.g"] # Deleting the parent will delete its tree
-print(my_data) # Attribute "b.g" is deleted
+print(my_magic) # Attribute "b.g" is deleted
 # Output: {'a': 1, 'b': {'c': 3, 'd': 4}, 'e': [{'f': 6}, 'xyz']}
 ```
 
-## Data type considerations
+## Data types
 
 The data type `MagicO` returns depends on how you access it:
 
@@ -120,16 +129,18 @@ print(f"  {type(my_magic['$.e[0].f'])}: {my_magic['$.e[0].f']}") # <class 'int'>
 print(f"  {type(my_magic[''])}: {my_magic['']}") # <class 'dict'>: ...
 ```
 
-`MagicO` also supports all `dict` and `list` behaviours: you may use `dict` methods, such as `items()`, `keys()`, `pop()`, `update()`, etc., and `list` methods, such as `append()`, `copy()`, `insert()`, `sort()`, etc.
+`MagicO` supports all `dict` and `list` behaviours: you may use `dict` methods and `list` methods on a `MagicO` object, as if it were the underlying `dict` or `list`.
 
 ```python
-for m in my_magic.keys():
+# Iterable
+for m in my_magic:
     print(f"{m}: {my_magic[m]}")
 # Output:
 # a: 1
 # b: {'c': 3, 'd': 4}
 # e: [{'f': 6}, 'xyz']
 
+# Sortable
 my_magic.e.append([8, 6, 7, 5])
 print(my_magic)
 my_magic.e[-1].sort()
@@ -142,7 +153,7 @@ print(my_magic)
 ## Referential pointers
 
 Access to a `MagicO` object returns a pointer to the original data.
-Updating the returned object will affect the original data as well.
+Updating the returned object will affect the original data object as well.
 In short, `MagicO` is a wrapper of the original data you created it with.
 They all share the same storage.
 
@@ -164,6 +175,7 @@ Another example with JSONPath and delete. The deletion on the returned object `m
 ```python
 my_magic_attr = my_magic["$.e"]
 print(my_magic_attr) # Output: [{'f': 6}, 'xyz', [5, 6, 7, 8]]
+
 del my_magic_attr[-1]
 print(my_data) # Output: {'a': 1, 'b': {'c': 3, 'd': 4}, 'e': [{'f': 6}, 'xyz']}
 ```
