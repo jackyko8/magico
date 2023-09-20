@@ -12,12 +12,25 @@ from .json_path_data import *
 magico_types_union = Union[dict, list, tuple]
 magico_types = magico_types_union.__args__
 
+excluded = [
+    "__contains__",
+    "__eq__",
+    "__iter__",
+    "__repr__",
+    "__len__",
+    "__getattr__",
+    "__setattr__",
+    "__delattr__",
+    "__getitem__",
+    "__setitem__",
+    "__delitem_",
+]
 
-def get_callable_names(data_type: type) -> list:
+def get_callable_names(data_type: type, excluded: list=excluded) -> list:
     callable_names = []
     for method_name in dir(data_type):
         method = getattr(data_type, method_name)
-        if callable(method):
+        if callable(method) and method_name not in excluded:
             callable_names.append(method_name)
     return callable_names
 
@@ -37,7 +50,7 @@ class MagicO(ABC):
 
     def _type_method(self, type: type, method_name: str) -> Callable:
         type_method = getattr(type, method_name)
-        # logger.debug(f"_type_method: {type_method}")
+        # logger.debug(f"type_method: {type_method}")
         @functools.wraps(type_method)
         def method_wrapper(*args, **kwargs):
             return type_method(self.__dict__["_data"], *args, **kwargs)
@@ -50,7 +63,14 @@ class MagicO(ABC):
     #
 
     def __contains__(self, other) -> bool:
-        return other in self._data
+        try:
+            if type(self._data) in (list, tuple) and other in self._data:
+                # List element containment
+                return True
+            else:
+                return self.__getitem__(other) != None
+        except:
+            return False
 
 
     def __eq__(self, other) -> bool:
@@ -113,11 +133,14 @@ class MagicO(ABC):
         # logger.debug(f"__getitem__: {type(path)} {path}")
         if type(path) == str:
             return json_path_data(self._data, path_str(path))
+        elif type(self._data[path]) not in magico_types:
+            return self._data[path]
         else:
-            item = json_path_data(self._data, path_str(path))
-            if type(item) in magico_types:
-                item = MagicO(item)
-            return item
+            val = MagicO(self._data[path])
+            if val != None:
+                return val
+            else:
+                return super().__getitem__(path)
 
 
     def __setitem__(self, path, value) -> None:
