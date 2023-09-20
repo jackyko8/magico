@@ -1,6 +1,6 @@
 # MagicO - enabling attribute notation and JSONPath
 
-`MagicO` (Magic Object 0.1) allows you to access a `dict`, `list`, or `tuple` Python object using the attribute notation or a JSONPath.
+`MagicO` (Magic Object) allows you to access a `dict`, `list`, or `tuple` Python object using the attribute notation or a JSONPath.
 
 For example, given the following data object:
 
