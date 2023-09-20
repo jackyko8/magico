@@ -1,6 +1,5 @@
 import setuptools
 import os
-import json
 
 about = {}
 with open(f"{os.path.abspath(os.path.dirname(__file__))}/src/magico/__version__.py", "r") as f:

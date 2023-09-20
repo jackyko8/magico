@@ -1,17 +1,16 @@
-from .dotted_dict import *
 from abc import ABC
 from typing import Any, Union, Callable
 from copy import deepcopy
-import json
-import re
 import functools
+from .json_path_data import *
 
 # import logging
 # logging.basicConfig()
 # logger = logging.getLogger()
 # logger.setLevel(logging.DEBUG)
 
-magico_types = Union[dict, list]
+magico_types_union = Union[dict, list, tuple]
+magico_types = magico_types_union.__args__
 
 
 def get_callable_names(data_type: type) -> list:
@@ -24,12 +23,12 @@ def get_callable_names(data_type: type) -> list:
 
 
 class MagicO(ABC):
-    def __init__(self, data: magico_types) -> None:
+    def __init__(self, data: magico_types_union) -> None:
         # Use only __dict__ to avoid triggering magic functions
         self.__dict__["_data"] = data
         self.__dict__["_type_method_list"] = []
         data_type = type(data)
-        if data_type in magico_types.__args__:
+        if data_type in magico_types:
             self.__dict__["_type_method_list"] = get_callable_names(data_type)
 
         for type_method in self.__dict__["_type_method_list"]:
@@ -80,7 +79,7 @@ class MagicO(ABC):
         if attr in self.__dict__["_type_method_list"]:
             return self.__dict__["_type_method_list"][attr]
         elif attr in self._data:
-            if type(self._data[attr]) in (dict, list):
+            if type(self._data[attr]) in magico_types:
                 return MagicO(self._data[attr])
             else:
                 return self._data[attr]
@@ -113,22 +112,22 @@ class MagicO(ABC):
     def __getitem__(self, path) -> Any:
         # logger.debug(f"__getitem__: {type(path)} {path}")
         if type(path) == str:
-            return dotted_dict(self._data, path_str(path))
+            return json_path_data(self._data, path_str(path))
         else:
-            item = dotted_dict(self._data, path_str(path))
-            if type(item) in (dict, list):
+            item = json_path_data(self._data, path_str(path))
+            if type(item) in magico_types:
                 item = MagicO(item)
             return item
 
 
     def __setitem__(self, path, value) -> None:
         # logger.debug(f"__setitem__: {type(path)} {path} <- {value}")
-        dotted_dict(self._data, path_str(path), value=value)
+        json_path_data(self._data, path_str(path), value=value)
 
 
     def __delitem__(self, path) -> None:
         # logger.debug(f"__delitem__: {type(path)} {path}")
-        dotted_dict(self._data, path_str(path), delete=True)
+        json_path_data(self._data, path_str(path), delete=True)
 
 
     ############################################################
@@ -136,16 +135,16 @@ class MagicO(ABC):
     # Utility methods
     #
 
-    def to_data(self) -> magico_types:
+    def to_data(self) -> magico_types_union:
         # logger.debug(f"to_data: {type(self._data)} {self._data}")
         return self._data
 
 
-    def to_dict(self) -> magico_types:
+    def to_dict(self) -> magico_types_union:
         # logger.debug(f"to_dict: {type(self._data)} {self._data}")
         return self._data
 
 
-    def to_list(self) -> magico_types:
+    def to_list(self) -> magico_types_union:
         # logger.debug(f"to_list: {type(self._data)} {self._data}")
         return self._data
