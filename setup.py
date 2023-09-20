@@ -19,15 +19,15 @@ setuptools.setup(
     author_email=about["__author_email__"],
     license=about["__license__"],
 
-    packages=["magico"],
+    packages=[about["__name__"]],
     package_data={"": ["LICENSE"]},
     package_dir={"": "src"},
     python_requires=">=3.7",
 
     project_urls={
-        "Source": "https://github.com/jackyko8/magico",
-        "Documentation": "https://github.com/jackyko8/magico/blob/main/tutorials/MagicO.ipynb",
-        "Bug Tracker": "https://github.com/jackyko8/magico/issues",
+        "Source": about["__url__"],
+        "Documentation": about["__url__"] + "/blob/main/tutorials/MagicO.ipynb",
+        "Bug Tracker": about["__url__"] + "/issues",
     },
 
     classifiers=[
