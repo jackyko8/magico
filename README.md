@@ -112,18 +112,22 @@ The data type `MagicO` returns depends on how you access it:
 print("MagicO object")
 print(f"  {type(my_magic)}: {my_magic}") # <class 'magico.magico.MagicO'>: ...
 print(f"  {type(my_magic.to_data())}: {my_magic.to_data()}") # <class 'dict'>: ...
+print(f"  {type(my_magic.data_type())}: {my_magic.data_type()}") # <class 'type'>: <class 'dict'>
 
 print("dict object")
 print(f"  {type(my_magic.e[0])}: {my_magic.e[0]}") # <class 'magico.magico.MagicO'>: {'f': 6}
 print(f"  {type(my_magic.e[0].to_data())}: {my_magic.e[0].to_data()}") # <class 'dict'>: {'f': 6}
+print(f"  {type(my_magic.e[0].data_type())}: {my_magic.e[0].data_type()}") # <class 'type'>: <class 'dict'>
 
 print("list object")
 print(f"  {type(my_magic.e)}: {my_magic.e}") # <class 'magico.magico.MagicO'>: [{'f': 6}, 'xyz']
 print(f"  {type(my_magic.e.to_data())}: {my_magic.e.to_data()}") # <class 'list'>: [{'f': 6}, 'xyz']
+print(f"  {type(my_magic.e.data_type())}: {my_magic.e.data_type()}") # <class 'type'>: <class 'list'>
 
 print("tuple object")
 print(f"  {type(my_magic.b.d)}: {my_magic.b.d}") # <class 'magico.magico.MagicO'>: (4, 5)
 print(f"  {type(my_magic.b.d.to_data())}: {my_magic.b.d.to_data()}") # <class 'tuple'>: (4, 5)
+print(f"  {type(my_magic.b.d.data_type())}: {my_magic.b.d.data_type()}") # <class 'type'>: <class 'tuple'>
 
 print("Scalar")
 print(f"  {type(my_magic.e[0].f)}: {my_magic.e[0].f}") # <class 'int'>: 6

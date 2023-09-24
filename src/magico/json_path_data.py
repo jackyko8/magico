@@ -1,10 +1,17 @@
 from copy import deepcopy
+from typing import Union, Any
 import re
 
+def path_str(path: Union[str, int, slice]) -> str:
+    """Convert path of int and slice types to str type to be used in json_path_data
+    This is to handle data being a non-str.
 
-# Convert path of int and slice types to str type to be used in json_path_data
-# This is to handle data being a non-str.
-def path_str(path):
+    Args:
+        path (Union[str, int, slice]): path to be converted
+
+    Returns:
+        str: string representation of `path`: "[path]" if int; "[start:stop:step]" if slice
+    """
     _path = path
     if type(_path) == int:
         _path = f"$[{_path}]"
@@ -16,7 +23,7 @@ def path_str(path):
     return _path
 
 
-# JSON Path
+# JSONPath
 #   Take a dict or list object and return the attribute identified in `key_path`.
 #   If `value` is not None, set the attribute with `value`.
 #   If `delete` is True, delete the attribute (and ignore `value`).
@@ -72,14 +79,59 @@ def path_str(path):
 
 
 def json_path_data(
-        root_dict,
-        key_path="",
-        default=None,
-        delete=False,
-        value=None,
-        _parent_obj=None,
-        _parent_key=None
-    ):
+        root_dict: Union[dict, list, tuple],
+        key_path: str="",
+        default: Any=None,
+        delete: bool=False,
+        value: Any=None,
+        _parent_obj: Union[dict, list, tuple]=None,
+        _parent_key: str=None
+    ) -> Union[dict, list, tuple]:
+    """JSONPath
+    Take a dict or list object and return the attribute identified in `key_path`.
+    If `value` is not None, set the attribute with `value`.
+    If `delete` is True, delete the attribute (and ignore `value`).
+
+    Args:
+        root_dict (Union[dict, list, tuple]):
+            The object the JSONPath is addressing.
+
+        key_path (str, optional):
+            The JSONPath.
+            Defaults to "".
+
+        default (Any, optional):
+            If the addressed element does not exist, return `default`.
+            Defaults to None.
+
+        delete (bool, optional):
+            Delete the addressed element if true.
+            Defaults to False.
+
+        value (Any, optional):
+            Assign the `value` to the addressed element unless it is None.
+            Defaults to None.
+
+        _parent_obj (Union[dict, list, tuple], optional):
+            The parent object of `root_dict` (for deleting from parent).
+            Defaults to None (`root_dict` is at the top level).
+
+        _parent_key (str, optional):
+            The key of the parent object to address `root_dict` (for deleting from parent).
+            Defaults to None.
+
+    Raises:
+        KeyError: Cannot delete {key}
+        KeyError: Cannot set value for {key}
+        KeyError: Invalid index syntax {indexes_str}
+        KeyError: Invalid index range {indexes_str} for {key} - index_me={index_me}
+        KeyError: Invalid index range {indexes_str} for branch node {key}
+        KeyError: Cannot set value for {key}[{indexes_str}]
+
+    Returns:
+        Union[dict, list, tuple]:
+            The element the JSONPath addresses
+    """
 
     # root_dict is passed by reference
     # root_node is a twin of root_dict (a reference to the root node)

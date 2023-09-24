@@ -1,5 +1,4 @@
-from abc import ABC
-from typing import Any, Union, Callable
+from typing import Any, Union, Callable, Iterator
 from copy import deepcopy
 import functools
 from .json_path_data import *
@@ -27,6 +26,18 @@ excluded = [
 ]
 
 def get_callable_names(data_type: type, excluded: list=excluded) -> list:
+    """Get a list of callable names of `data_type`
+
+    Args:
+        data_type (type):
+            The data type to get the callable names from.
+        excluded (list, optional):
+            A list of names to ignore.
+            Defaults to excluded (as defined prior).
+
+    Returns:
+        list: The list of callable names
+    """
     callable_names = []
     for method_name in dir(data_type):
         method = getattr(data_type, method_name)
@@ -35,8 +46,19 @@ def get_callable_names(data_type: type, excluded: list=excluded) -> list:
     return callable_names
 
 
-class MagicO(ABC):
+class MagicO():
+    """Magic Object to enable attribute notation and
+    JSONPath addressing of a Python dict, list, or tuple.
+    """
+
     def __init__(self, data: magico_types_union) -> None:
+        """MagicO constructor
+
+        Args:
+            data (magico_types_union):
+                The Python dict, list, or tuple that
+                the MagicO object is encapsulating.
+        """
         # Use only __dict__ to avoid triggering magic functions
         self.__dict__["_data"] = data
         self.__dict__["_type_method_list"] = []
@@ -49,10 +71,26 @@ class MagicO(ABC):
 
 
     def _type_method(self, type: type, method_name: str) -> Callable:
+        """Internal method to return a callable from
+        the encapsulted object, so that the MagicO object
+        behaves like the object it encapsults.
+
+        Args:
+            type (type):
+                The data type of the encapsulted object.
+
+            method_name (str):
+                The name of the callable method. For example,
+                "keys" for dict, "append" for list, or "index" for tuple.
+
+        Returns:
+            Callable: The method of the `type` named `method_name`.
+        """
         type_method = getattr(type, method_name)
         # logger.debug(f"type_method: {type_method}")
         @functools.wraps(type_method)
         def method_wrapper(*args, **kwargs):
+            # logger.debug(f"method_wrapper: args={args}, kwargs={kwargs}")
             return type_method(self.__dict__["_data"], *args, **kwargs)
         return method_wrapper
 
@@ -62,7 +100,17 @@ class MagicO(ABC):
     # Type behaviour methods
     #
 
-    def __contains__(self, other) -> bool:
+    def __contains__(self, other: Any) -> bool:
+        """Magic function to test if the
+        encapsulated object contains `other`.
+
+        Args:
+            other (Any): The object to test.
+
+        Returns:
+            bool: True if the encapsulated object contains `other`.
+        """
+        # logger.debug(f"__contains__: {type(other)} {other}")
         try:
             if type(self._data) in (list, tuple) and other in self._data:
                 # List element containment
@@ -73,19 +121,58 @@ class MagicO(ABC):
             return False
 
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: magico_types_union) -> bool:
+        """Magic function to test if the
+        encapsulated objectequals to `other`.
+
+        Args:
+            other (Any): The object to test.
+
+        Returns:
+            bool: True if the encapsulated object equals to `other`.
+        """
+        # logger.debug(f"__eq__: {type(other)} {other}")
         return self._data == other
 
 
-    def __iter__(self) -> list:
-        return self._data.__iter__()
+    def __iter__(self) -> Iterator:
+        """Magic function to return an iterator
+        of the encapsulated object.
+
+        Returns:
+            Iterator: The iterator of the encapsulated object.
+
+        Yields:
+            Iterator: The next element of the encapsulated object.
+        """
+        # logger.debug(f"__iter__: self={self}")
+        if type(self._data) == list:
+            # Make each "magico typed" element of the list itself a MagicO.
+            return [MagicO(_) if type(_) in magico_types else _ for _ in self._data].__iter__()
+        elif type(self._data) == tuple:
+            # Make each "magico typed" element of the tuple itself a MagicO.
+            return (MagicO(_) if type(_) in magico_types else _ for _ in self._data).__iter__()
+        else:
+            # Return the dict iterator as is.
+            return self._data.__iter__()
 
 
     def __repr__(self) -> str:
+        """Magic function to return the string
+        representation of the encapsulated object.
+
+        Returns:
+            str: A string representation of the encapsulated object.
+        """
+        # logger.debug(f"__repr__")
         return str(self._data)
 
 
     def __len__(self) -> int:
+        """Magic function to return the length
+        of the encapsulated object.
+        """
+        # logger.debug(f"__len__")
         return len(self._data)
 
 
@@ -94,7 +181,19 @@ class MagicO(ABC):
     # Attribute notation methods
     #
 
-    def __getattr__(self, attr) -> Any:
+    def __getattr__(self, attr: str) -> Any:
+        """Magic function to return the attribute named `attr`.
+
+        Args:
+            attr (str): The attribute name to address
+
+        Raises:
+            Exception:
+                {type(self).__name__} object has no attribute '{attr}'
+
+        Returns:
+            Any: The attribute named `attr`.
+        """
         # logger.debug(f"__getattr__: {type(attr)} {attr}")
         if attr in self.__dict__["_type_method_list"]:
             return self.__dict__["_type_method_list"][attr]
@@ -107,7 +206,14 @@ class MagicO(ABC):
             raise Exception(f"{type(self).__name__} object has no attribute '{attr}'")
 
 
-    def __setattr__(self, attr, value: Any) -> None:
+    def __setattr__(self, attr: str, value: Any) -> None:
+        """Magic function to set the attribute
+        named `attr` with value `value`.
+
+        Args:
+            attr (str): The attribute name of the attribute to set.
+            value (Any): The value to set the attribute with.
+        """
         # logger.debug(f"__setattr__:  {type(attr)} {attr} <- {value}")
         # Use self.__dict__ to avoid recursion
         if "_data" not in self.__dict__:
@@ -119,6 +225,11 @@ class MagicO(ABC):
 
 
     def __delattr__(self, attr: str) -> None:
+        """Magic function to delete the attribute named `attr`.
+
+        Args:
+            attr (str): The attribute name of the attribute to delete.
+        """
         # logger.debug(f"__getattr__: {type(attr)} {attr}")
         if "_data" in self.__dict__ and attr in self._data:
             del self._data[attr]
@@ -129,7 +240,17 @@ class MagicO(ABC):
     # JSONPath notation methods
     #
 
-    def __getitem__(self, path) -> Any:
+    def __getitem__(self, path: Union[dict, list, tuple]) -> Any:
+        """Magic function to return the attribute
+        addressed by JSONPath `path`.
+
+        Args:
+            path (Union[dict, list, tuple]): The JSONPath.
+
+        Returns:
+            Any: The object the JSONPath is addressing
+            in the encapsulated object.
+        """
         # logger.debug(f"__getitem__: {type(path)} {path}")
         if type(path) == str:
             return json_path_data(self._data, path_str(path))
@@ -143,12 +264,25 @@ class MagicO(ABC):
                 return super().__getitem__(path)
 
 
-    def __setitem__(self, path, value) -> None:
+    def __setitem__(self, path: Union[dict, list, tuple], value: Any) -> None:
+        """Magic function to set the attribute
+        addressed by JSONPath `path`.
+
+        Args:
+            path (Union[dict, list, tuple]): The JSONPath.
+            value (Any): The value to set the attribute with.
+        """
         # logger.debug(f"__setitem__: {type(path)} {path} <- {value}")
         json_path_data(self._data, path_str(path), value=value)
 
 
-    def __delitem__(self, path) -> None:
+    def __delitem__(self, path: Union[dict, list, tuple]) -> None:
+        """Magic function to delete the attribute
+        addressed by JSONPath `path`.
+
+        Args:
+            path (Union[dict, list, tuple]): The JSONPath.
+        """
         # logger.debug(f"__delitem__: {type(path)} {path}")
         json_path_data(self._data, path_str(path), delete=True)
 
@@ -159,15 +293,20 @@ class MagicO(ABC):
     #
 
     def to_data(self) -> magico_types_union:
+        """Get the encapsulated object.
+
+        Returns:
+            magico_types_union: The encapsulated object.
+        """
         # logger.debug(f"to_data: {type(self._data)} {self._data}")
         return self._data
 
 
-    def to_dict(self) -> magico_types_union:
-        # logger.debug(f"to_dict: {type(self._data)} {self._data}")
-        return self._data
+    def data_type(self) -> type:
+        """Get the type of the encapsulated object.
 
-
-    def to_list(self) -> magico_types_union:
-        # logger.debug(f"to_list: {type(self._data)} {self._data}")
-        return self._data
+        Returns:
+            type: The type of the encapsulated object.
+        """
+        # logger.debug(f"data_type: {type(self._data)} {self._data}")
+        return type(self._data)
