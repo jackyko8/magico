@@ -1,5 +1,8 @@
 # Release Notes
 
+Version 0.3.5 2023-10-09
+- Export __name__, __version__, and __description__
+
 Version 0.3.4 2023-09-24
 - Add data_type()
 - Fix __iter__ so it returns MagicO for list and tuple

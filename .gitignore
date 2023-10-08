@@ -5,6 +5,7 @@ _[a-zA-Z0-9]*
 # Platform related
 .c9
 .DS_Store
+.vscode
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
