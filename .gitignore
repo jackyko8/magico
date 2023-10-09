@@ -1,5 +1,7 @@
 # Project related
 _[a-zA-Z0-9]*
+!_static
+!_templates
 ._*
 
 # Platform related
