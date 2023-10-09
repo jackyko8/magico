@@ -1,5 +1,5 @@
 __name__ = "magico"
-__version__ = "0.3.5"
+__version__ = "1.0"
 __description__ = "MagicO - enabling attribute notation and JSONPath"
 __url__ = "https://github.com/jackyko8/magico"
 __author__ = "Jacky Ko"

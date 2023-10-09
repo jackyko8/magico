@@ -1,5 +1,8 @@
 # Release Notes
 
+Verion 1.0 2023-10-09
+- Added documentation: Sphinx and readthedocs
+
 Version 0.3.5 2023-10-09
 - Export __name__, __version__, and __description__
 

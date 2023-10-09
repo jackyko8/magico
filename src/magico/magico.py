@@ -296,7 +296,7 @@ class MagicO():
         """Get the encapsulated object.
 
         Returns:
-            magico_types_union: The encapsulated object.
+            dict | list | tuple: The encapsulated object.
         """
         # logger.debug(f"to_data: {type(self._data)} {self._data}")
         return self._data
